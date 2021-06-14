@@ -10,6 +10,7 @@
   "devDependencies": {
     "@aws-cdk/assert": "1.106.1",
     "aws-cdk": "1.106.1",
+    "aws-sdk": "^2.927.0",
     "jest": "^26.4.2"
   },
   "dependencies": {

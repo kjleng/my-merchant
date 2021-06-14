@@ -54,4 +54,4 @@ const getMerchantByName = async (merchantName) => {
   }).promise(); 
 };
 
-module.exports = { handler };
+module.exports = { handler, getMerchantByName };
