@@ -2,6 +2,8 @@ const { Stack } = require('@aws-cdk/core');
 const { Runtime, Code, Function } = require('@aws-cdk/aws-lambda');
 const { RestApi, LambdaIntegration, Cors } = require('@aws-cdk/aws-apigateway');
 const { Table } = require('@aws-cdk/aws-dynamodb');
+const { UserPool } = require('@aws-cdk/aws-cognito');
+const { Effect, PolicyStatement } = require('@aws-cdk/aws-iam');
 
 const runtime = Runtime.NODEJS_14_X;
 const LAMBDA_DIR = 'src/lambda';
@@ -24,7 +26,8 @@ class MainStack extends Stack {
     const apiRoot = merchantApi.root.addResource('api');
     const v1 = apiRoot.addResource('v1');
     const merchants = v1.addResource('merchants');
-    
+    const basicMerchants = v1.addResource('basic_merchants');
+
     /*** Lambdas **/
     const getMerchant = new Function(this, getName('get-merchant-function', environment), { 
       runtime, 
@@ -34,6 +37,34 @@ class MainStack extends Stack {
     });
     merchants.addMethod('GET', new LambdaIntegration(getMerchant));
     
+    const createMerchant = new Function(this, getName('create-merchant-function', environment), { 
+      runtime, 
+      code: Code.fromAsset(LAMBDA_DIR), 
+      handler: 'createMerchant.handler',
+      environment: config
+    });
+    merchants.addMethod('POST', new LambdaIntegration(createMerchant));
+
+    const getAllMerchantsFromUserPool = new Function(this, getName('get-all-merchants', environment), { 
+      runtime, 
+      code: Code.fromAsset(LAMBDA_DIR), 
+      handler: 'getAllMerchantsFromUserPool.handler',
+      environment: config
+    });
+    basicMerchants.addMethod('GET', new LambdaIntegration(getAllMerchantsFromUserPool));
+    
+    /** Cognito **/
+    const userPool = UserPool.fromUserPoolId(this, 'UserPool', 'us-east-1_6JDtBmeG2');
+    getAllMerchantsFromUserPool.addToRolePolicy(
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: ['cognito-idp:ListUsers'],
+        resources: [
+          `arn:aws:cognito-idp:${userPool.stack.region}:${userPool.stack.account}:userpool/${userPool.userPoolId}`
+        ],
+      })
+    )
+
     /** DynamoDB **/
     const merchantTableArn = `arn:aws:dynamodb:${region}:${aws_account_id}:table/${merchant_mapping_table}`;
     const merchantMappingTable = Table.fromTableArn(this, getName('merchant-mapping-table', environment), merchantTableArn);

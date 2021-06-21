@@ -5,7 +5,7 @@
     "cdk": "cdk",
     "test": "jest",
     "synth": "cdk synth -c config=dev",
-    "deploy-dev": "cdk deploy \"*\" -c config=dev --require-approval=never --progress=events"
+    "deploy": "cdk deploy \"*\" -c config=dev --require-approval=never --progress=events"
   },
   "devDependencies": {
     "@aws-cdk/assert": "1.106.1",
@@ -15,7 +15,9 @@
   },
   "dependencies": {
     "@aws-cdk/aws-apigateway": "^1.106.1",
+    "@aws-cdk/aws-cognito": "^1.109.0",
     "@aws-cdk/aws-dynamodb": "^1.106.1",
+    "@aws-cdk/aws-iam": "^1.109.0",
     "@aws-cdk/aws-lambda": "^1.106.1",
     "@aws-cdk/core": "1.106.1"
   }
